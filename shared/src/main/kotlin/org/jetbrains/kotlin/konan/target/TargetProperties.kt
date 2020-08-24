@@ -78,7 +78,6 @@ private fun String.resolveValue(properties: Properties, visitedProperties: Mutab
                 if (!visitedProperties.add(property)) {
                     error("Circular dependency: ${visitedProperties.joinToString()}")
                 }
-                visitedProperties += property
                 properties.resolvablePropertyList(property, visitedProperties = visitedProperties)
             }
             else -> listOf(this)

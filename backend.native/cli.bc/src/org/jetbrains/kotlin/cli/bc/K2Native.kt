@@ -250,6 +250,7 @@ class K2Native : CLICompiler<K2NativeCompilerArguments>() {
                     put(SHORT_MODULE_NAME, it)
                 }
                 put(DISABLE_FAKE_OVERRIDE_VALIDATOR, arguments.disableFakeOverrideValidator)
+                put(DISABLE_CACHES_PRE_LINK, arguments.disableCachesPreLink)
             }
         }
     }

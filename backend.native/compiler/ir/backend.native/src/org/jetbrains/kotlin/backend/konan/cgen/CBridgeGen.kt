@@ -11,7 +11,6 @@ import org.jetbrains.kotlin.backend.konan.PrimitiveBinaryType
 import org.jetbrains.kotlin.backend.konan.RuntimeNames
 import org.jetbrains.kotlin.backend.konan.ir.*
 import org.jetbrains.kotlin.backend.konan.isObjCMetaClass
-import org.jetbrains.kotlin.builtins.KotlinBuiltIns
 import org.jetbrains.kotlin.builtins.UnsignedType
 import org.jetbrains.kotlin.descriptors.ClassKind
 import org.jetbrains.kotlin.descriptors.Modality
@@ -43,6 +42,7 @@ import org.jetbrains.kotlin.types.Variance
 import org.jetbrains.kotlin.util.OperatorNameConventions
 import org.jetbrains.kotlin.backend.konan.getObjCMethodInfo
 import org.jetbrains.kotlin.backend.konan.lower.FunctionReferenceLowering
+import org.jetbrains.kotlin.backend.konan.serialization.KonanIrLinker
 import org.jetbrains.kotlin.builtins.StandardNames
 import org.jetbrains.kotlin.ir.descriptors.*
 
@@ -834,8 +834,13 @@ private fun KotlinStubs.mapType(
 
     isObjCReferenceType(type) -> ObjCReferenceValuePassing(symbols, type, retained = retained)
 
+    type.isForwardDeclaration() -> TrivialValuePassing(symbols.nativePtrType, CTypes.voidPtr, isForwardDeclaration = true)
+
     else -> reportUnsupportedType("doesn't correspond to any C type")
 }
+
+private fun IrType.isForwardDeclaration(): Boolean =
+        classOrNull?.owner?.origin == KonanIrLinker.FORWARD_DECLARATION_ORIGIN
 
 private fun KotlinStubs.isObjCReferenceType(type: IrType): Boolean {
     if (!target.family.isAppleFamily) return false
@@ -925,14 +930,27 @@ private abstract class SimpleValuePassing : ValuePassing {
     }
 }
 
-private class TrivialValuePassing(val kotlinType: IrType, override val cType: CType) : SimpleValuePassing() {
+private class TrivialValuePassing(
+        val kotlinType: IrType,
+        override val cType: CType,
+        private val isForwardDeclaration: Boolean = false
+) : SimpleValuePassing() {
     override val kotlinBridgeType: IrType
         get() = kotlinType
     override val cBridgeType: CType
         get() = cType
 
     override fun IrBuilderWithScope.kotlinToBridged(expression: IrExpression): IrExpression = expression
-    override fun IrBuilderWithScope.bridgedToKotlin(expression: IrExpression, symbols: KonanSymbols): IrExpression = expression
+    override fun IrBuilderWithScope.bridgedToKotlin(expression: IrExpression, symbols: KonanSymbols): IrExpression =
+            if (isForwardDeclaration) {
+                // Sometimes we have to deal with incomplete types directly.
+                // E.g. external top-level variable of forward-declared type.
+                irCall(symbols.interopInterpretNullablePointed).also {
+                    it.putValueArgument(0, expression)
+                }
+            } else {
+                expression
+            }
     override fun bridgedToC(expression: String): String = expression
     override fun cToBridged(expression: String): String = expression
 }

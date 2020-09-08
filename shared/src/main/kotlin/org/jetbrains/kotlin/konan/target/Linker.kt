@@ -195,6 +195,7 @@ class MacOSBasedLinker(targetProperties: AppleConfigurables)
 
     override fun filterStaticLibraries(binaries: List<String>) = binaries.filter { it.isUnixStaticLib }
 
+    // Note that may break in case of 32-bit Mach-O. See KT-37368.
     override fun preLinkCommands(objectFiles: List<ObjectFile>, output: ObjectFile): List<Command> =
         Command(linker).apply {
             +"-r"

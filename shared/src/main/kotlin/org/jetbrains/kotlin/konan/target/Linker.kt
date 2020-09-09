@@ -199,6 +199,8 @@ class MacOSBasedLinker(targetProperties: AppleConfigurables)
     override fun preLinkCommands(objectFiles: List<ObjectFile>, output: ObjectFile): List<Command> =
         Command(linker).apply {
             +"-r"
+            +listOf("-arch", arch)
+            +listOf("-syslibroot", absoluteTargetSysRoot)
             +objectFiles
             +listOf("-o", output)
         }.let(::listOf)

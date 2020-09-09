@@ -138,7 +138,7 @@ internal class Linker(val context: Context) {
 
         val needsProfileLibrary = context.coverage.enabled
 
-        val linkerInput = determineLinkerInput(objectFiles)
+        val linkerInput = determineLinkerInput(objectFiles, linkerOutput)
         try {
             File(executable).delete()
             val linkerArgs = asLinkerArgs(config.getNotNull(KonanConfigKeys.LINKER_ARGS)) +
@@ -175,25 +175,31 @@ internal class Linker(val context: Context) {
         return executable
     }
 
-    private fun determineLinkerInput(objectFiles: List<ObjectFile>): LinkerInput {
+    private fun shouldPerformPreLink(caches: CachesToLink, linkerOutputKind: LinkerOutputKind): Boolean {
+        // Pre-link is only useful when producing static library. Otherwise its just a waste of time.
+        val isStaticLibrary = linkerOutputKind == LinkerOutputKind.STATIC_LIBRARY &&
+                context.config.produce.isFinalBinary
+        val enabled = !context.config.cacheSupport.disableCachesPreLink
+        val nonEmptyCaches = caches.static.isNotEmpty()
+        return isStaticLibrary && enabled && nonEmptyCaches
+    }
+
+    private fun determineLinkerInput(objectFiles: List<ObjectFile>, linkerOutputKind: LinkerOutputKind): LinkerInput {
         val caches = determineCachesToLink(context)
         // Since we have several linker stages that involve caching,
         // we should detect cache usage early to report errors correctly.
         val cachingInvolved = caches.static.isNotEmpty() || caches.dynamic.isNotEmpty()
-        val config = context.config
         return when {
-            config.produce == CompilerOutputKind.STATIC_CACHE -> {
+            context.config.produce == CompilerOutputKind.STATIC_CACHE -> {
                 // Do not link static cache dependencies.
                 LinkerInput(objectFiles, CachesToLink(emptyList(), caches.dynamic), emptyList(), cachingInvolved)
             }
-            config.cacheSupport.disableCachesPreLink || caches.static.isEmpty() -> {
-                LinkerInput(objectFiles, caches, emptyList(), cachingInvolved)
-            }
-            else -> {
-                val preLinkResult = config.tempFiles.create("withStaticCaches", ".o").absolutePath
+            shouldPerformPreLink(caches, linkerOutputKind) -> {
+                val preLinkResult = context.config.tempFiles.create("withStaticCaches", ".o").absolutePath
                 val preLinkCommands = linker.preLinkCommands(objectFiles + caches.static, preLinkResult)
                 LinkerInput(listOf(preLinkResult), CachesToLink(emptyList(), caches.dynamic), preLinkCommands, cachingInvolved)
             }
+            else -> LinkerInput(objectFiles, caches, emptyList(), cachingInvolved)
         }
     }
 }

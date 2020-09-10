@@ -308,7 +308,7 @@ private fun parsePreLinkCachesValue(
         "disable" -> false
         null -> null
         else -> {
-            configuration.report(ERROR, "Unsupported `-pre-link-caches` value: $value. Possible values are 'enable'/'disable'")
+            configuration.report(ERROR, "Unsupported `-Xpre-link-caches` value: $value. Possible values are 'enable'/'disable'")
             null
         }
     }

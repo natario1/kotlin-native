@@ -272,7 +272,7 @@ class K2NativeCompilerArguments : CommonCompilerArguments() {
     var debugPrefixMap: Array<String>? = null
 
     @Argument(
-            value = "-pre-link-caches",
+            value = "-Xpre-link-caches",
             valueDescription = "{disable|enable}",
             description = "Perform caches pre-link"
     )

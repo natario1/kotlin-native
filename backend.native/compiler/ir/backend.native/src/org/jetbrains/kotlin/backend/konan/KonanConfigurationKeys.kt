@@ -142,8 +142,8 @@ class KonanConfigKeys {
                 = CompilerConfigurationKey.create("write objc header with generics support")
         val DEBUG_PREFIX_MAP: CompilerConfigurationKey<Map<String, String>>
                 = CompilerConfigurationKey.create("remap file source paths in debug info")
-        val DISABLE_CACHES_PRE_LINK: CompilerConfigurationKey<Boolean>
-                = CompilerConfigurationKey.create("disable compiler caches pre-link")
+        val PRE_LINK_CACHES: CompilerConfigurationKey<Boolean>
+                = CompilerConfigurationKey.create("perform compiler caches pre-link")
     }
 }
 

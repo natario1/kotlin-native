@@ -250,7 +250,7 @@ class K2Native : CLICompiler<K2NativeCompilerArguments>() {
                     put(SHORT_MODULE_NAME, it)
                 }
                 put(DISABLE_FAKE_OVERRIDE_VALIDATOR, arguments.disableFakeOverrideValidator)
-                put(DISABLE_CACHES_PRE_LINK, arguments.disableCachesPreLink)
+                putIfNotNull(PRE_LINK_CACHES, parsePreLinkCachesValue(configuration, arguments.preLinkCaches))
             }
         }
     }
@@ -299,6 +299,19 @@ private fun selectFrameworkType(
        arguments.staticFramework
     }
 }
+
+private fun parsePreLinkCachesValue(
+        configuration: CompilerConfiguration,
+        value: String?
+): Boolean? = when (value) {
+        "enable" -> true
+        "disable" -> false
+        null -> null
+        else -> {
+            configuration.report(ERROR, "Unsupported `-pre-link-caches` value: $value. Possible values are 'enable'/'disable'")
+            null
+        }
+    }
 
 private fun selectBitcodeEmbeddingMode(
         configuration: CompilerConfiguration,

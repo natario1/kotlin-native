@@ -86,8 +86,8 @@ class CacheSupport(
         }
     }
 
-    internal val disableCachesPreLink: Boolean =
-            configuration.getBoolean(KonanConfigKeys.DISABLE_CACHES_PRE_LINK)
+    internal val preLinkCaches: Boolean =
+            configuration.get(KonanConfigKeys.PRE_LINK_CACHES, false)
 
     init {
         // Ensure dependencies of every cached library are cached too:

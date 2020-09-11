@@ -15,8 +15,10 @@ import org.jetbrains.kotlin.descriptors.ClassKind
 import org.jetbrains.kotlin.descriptors.DescriptorVisibilities
 import org.jetbrains.kotlin.descriptors.Modality
 import org.jetbrains.kotlin.ir.UNDEFINED_OFFSET
+import org.jetbrains.kotlin.ir.builders.irBlockBody
 import org.jetbrains.kotlin.ir.builders.irCall
 import org.jetbrains.kotlin.ir.builders.irExprBody
+import org.jetbrains.kotlin.ir.builders.irReturn
 import org.jetbrains.kotlin.ir.declarations.*
 import org.jetbrains.kotlin.ir.declarations.impl.IrClassImpl
 import org.jetbrains.kotlin.ir.declarations.impl.IrFieldImpl
@@ -229,7 +231,9 @@ internal class EnumSpecialDeclarationsFactory(val context: Context) {
         val enumEntriesMap = enumEntriesMap(enumClass)
         val valuesGetterWrapper = createValuesGetterWrapper(enumClass, isExternal = false)
         context.createIrBuilder(valuesGetterWrapper.symbol).run {
-            valuesGetterWrapper.body = irExprBody(irCall(valuesGetter))
+            valuesGetterWrapper.body = irBlockBody {
+                +irReturn(irCall(valuesGetter))
+            }
         }
         return InternalLoweredEnum(
                 implObject,

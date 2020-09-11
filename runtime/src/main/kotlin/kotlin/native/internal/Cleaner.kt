@@ -12,18 +12,12 @@ public interface Cleaner
 @NoReorderFields
 @ExportTypeInfo("theCleanerImplTypeInfo")
 private class CleanerImpl(
-    private val obj: Any,
-    private val cleanObj: CPointer<CFunction<(Any) -> Unit>>,
-): Cleaner {
-
-    @ExportForCppRuntime("Kotlin_CleanerImpl_clean")
-    fun clean() {
-        cleanObj(obj)
-    }
-}
+    private val obj: Any?,
+    private val cleanObj: CPointer<CFunction<*>>,
+): Cleaner {}
 
 @ExportForCompiler
-private fun createCleanerImpl(argument: Any, block: CPointer<CFunction<(Any) -> Unit>>): Cleaner {
+private fun createCleanerImpl(argument: Any?, block: CPointer<CFunction<*>>): Cleaner {
     return CleanerImpl(argument, block)
 }
 

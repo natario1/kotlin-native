@@ -1,8 +1,9 @@
 import library.*
 import kotlinx.cinterop.*
+import kotlin.test.assertNotNull
 
 fun main() {
-    println(s.ptr)
-    println(u.ptr)
-    println(array)
+    assertNotNull(s.ptr)
+    assertNotNull(u.ptr)
+    assertNotNull(array)
 }

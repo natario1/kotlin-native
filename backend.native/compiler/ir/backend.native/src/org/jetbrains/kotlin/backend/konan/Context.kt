@@ -429,3 +429,12 @@ private fun MemberScope.getContributedClassifier(name: String) =
 
 private fun MemberScope.getContributedFunctions(name: String) =
         this.getContributedFunctions(Name.identifier(name), NoLookupLocation.FROM_BUILTINS)
+
+internal class LogBuilder(val context: Context) {
+    operator fun String.unaryPlus() = context.log { this }
+}
+
+internal fun Context.buildLog(messageBuilder: LogBuilder.() -> Unit) {
+    if (!inVerbosePhase) return
+    with(LogBuilder(this)) { messageBuilder() }
+}

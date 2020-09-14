@@ -41,4 +41,6 @@ internal class LlvmModuleSpecificationImpl(
 
     override fun containsDeclaration(declaration: IrDeclaration): Boolean =
             declaration.module.konanLibrary.let { it == null || containsLibrary(it) }
+                    // TODO: Should be a more robust solution.
+                    && declaration.origin != InternalAbi.INTERNAL_ABI_ORIGIN
 }
